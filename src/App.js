@@ -1,31 +1,24 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { auth } from './firebase';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import EquipmentPage from './components/EquipmentPage';
+import AuthPage from './components/AuthPage';
 
 export default function App() {
+  const [user, setUser] = useState(null);
   const [equipment, setEquipment] = useState(null);
 
-  // Simulação: substituir por chamada à API do Firebase
-  function handleScan() {
-    setEquipment({
-      description: 'Ar Condicionado - LG Dual Inverter',
-      warranty: 'Até 2027',
-      manualUrl: 'https://manufacturer.com/manual.pdf',
-      photos: ['https://loremflickr.com/320/240/ac','https://loremflickr.com/320/240/ac2'],
-      docs: [{name:'Comprovativo Garantia', url:'https://example.com/comprovativo.pdf'}],
-      maintenanceHistory: [
-        {date: '2024-06-01', type: 'Preventiva', info: 'Filtro limpo'},
-        {date: '2024-04-01', type: 'Corretiva', info: 'Troca de capacitor'},
-      ],
-      maintenanceUpcoming: [
-        {datePrevista: '2025-03-15', type: 'Preventiva', notificado: true},
-        {datePrevista: '2026-03-15', type: 'Preventiva'}
-      ],
-      logs: [
-        {data: '2023-12-20', acao: 'Transferido para sala 3'},
-        {data: '2025-04-10', acao: 'Manutenção solicitada'}
-      ]
-    });
-  }
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, u => setUser(u));
+    return () => unsub();
+  }, []);
 
-  return <EquipmentPage equipment={equipment} />;
+  if(!user) return <AuthPage onAuth={() => {}} />;
+
+  return (
+    <div>
+      <div className="w-full flex justify-end p-2"><button onClick={() => signOut(auth)}>Logout</button></div>
+      <EquipmentPage equipment={equipment} />
+    </div>
+  );
 }
